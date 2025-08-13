@@ -19,6 +19,15 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        netflix: {
+          red: '#E50914', // màu cho logo, button
+          black: '#000000', // background
+          darkGray: '#141414', //nền card, navigation
+          mediumGray: '#333333',// nền phụ, hover effect
+          lightGray: '#B3B3B3', // text phụ, mô tả phim
+          white: '#FFFFFF', // text chính
+          transparentBlack: 'rgba(0, 0, 0, 0.6)', //overlay nên mờ poster
+        },
         primary: {
           0: 'rgb(var(--color-primary-0)/<alpha-value>)',
           50: 'rgb(var(--color-primary-50)/<alpha-value>)',
