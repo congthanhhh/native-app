@@ -33,8 +33,9 @@ export default function RootLayout() {
                         tabBarStyle: {
                             backgroundColor: '#141414',
                         },
+                        headerTransparent: true,
                         headerStyle: {
-                            backgroundColor: '#141414',
+                            backgroundColor: 'transparent',
                         },
                         headerTintColor: '#fff',
                         tabBarShowLabel: true,

@@ -12,11 +12,12 @@ import {
   ButtonIcon,
   ButtonGroup,
 } from "@/components/ui/button";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Search() {
   const [showCards, setShowCards] = useState(false);
   return (
-    <View className="flex-1 px-4 bg-netflix-black w-full">
+    <SafeAreaView className="flex-1 px-4 pt-20 bg-netflix-black w-full">
       <Input
         className="w-full h-12 bg-gray-50/10"
         variant="outline"
@@ -248,6 +249,6 @@ export default function Search() {
           </Button>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
