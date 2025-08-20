@@ -1,19 +1,18 @@
 import axios from 'axios';
 
 // OMDb API configuration
-const API_KEY = 'your_api_key_here'; // Thay bằng API key thật từ omdbapi.com
+const API_KEY = '7496806';
 const BASE_URL = 'https://www.omdbapi.com/';
 
 // Tạo axios instance
 const apiClient = axios.create({
     baseURL: BASE_URL,
-    timeout: 10000, // 10 seconds timeout
+    timeout: 10000,
     params: {
-        apikey: API_KEY, // API key sẽ được thêm vào mọi request
+        apikey: API_KEY,
     },
 });
 
-// Request interceptor - chạy trước khi gửi request
 apiClient.interceptors.request.use(
     (config) => {
         console.log('📤 API Request:', config.url, config.params);
@@ -28,7 +27,6 @@ apiClient.interceptors.request.use(
 // Response interceptor - chạy sau khi nhận response
 apiClient.interceptors.response.use(
     (response) => {
-        console.log('📥 API Response:', response.data);
         return response;
     },
     (error) => {

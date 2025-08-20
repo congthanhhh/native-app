@@ -2,48 +2,45 @@ import '../global.css';
 import { ScrollView } from "react-native";
 import MovieCarousel from '@/components/home/MovieCarousel';
 import MovieCard from '@/components/home/MovieCard';
-
-
-const hotMovies = [
-    { id: 1, title: "Phụ Quân Đại Nhân", poster: "https://picsum.photos/200/300?random=1" },
-    { id: 2, title: "Dự Khanh Hành", poster: "https://picsum.photos/200/300?random=2" },
-    { id: 3, title: "Ngã Cha", poster: "https://picsum.photos/200/300?random=3" },
-    { id: 4, title: "Movie 4", poster: "https://picsum.photos/200/300?random=4" },
-    { id: 5, title: "Movie 5", poster: "https://picsum.photos/200/300?random=5" },
-    { id: 6, title: "Movie 6", poster: "https://picsum.photos/200/300?random=6" },
-    { id: 7, title: "Movie 7", poster: "https://picsum.photos/200/300?random=7" },
-    { id: 8, title: "Movie 8", poster: "https://picsum.photos/200/300?random=8" },
-];
-
-const popularMovies = [
-    { id: 9, title: "Lông Vũ Đen: Điệu Múa Của Geisha", poster: "https://picsum.photos/200/300?random=9" },
-    { id: 10, title: "Gangster Vô Danh", poster: "https://picsum.photos/200/300?random=10" },
-    { id: 11, title: "Vú Tí", poster: "https://picsum.photos/200/300?random=11" },
-];
-
-const continueWatching = [
-    { id: 12, title: "Movie A", poster: "https://picsum.photos/200/300?random=12" },
-    { id: 13, title: "Movie B", poster: "https://picsum.photos/200/300?random=13" },
-];
+import { SEARCH_TERMS } from '@/api/service/movieService';
+import { useHeaderBg } from '@/context/HeaderBgContext';
 
 export default function HomeScreen() {
+    const { setHeaderBgColor } = useHeaderBg();
+
+    const handleScroll = (event) => {
+        const offsetY = event.nativeEvent.contentOffset.y;
+        if (offsetY > 50) {
+            setHeaderBgColor('#141414'); // Màu khi scroll xuống
+        } else {
+            setHeaderBgColor('transparent'); // Màu khi ở top
+        }
+    };
+
     return (
-        <ScrollView className="flex-1 bg-netflix-black">
+        <ScrollView
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            className="flex-1 bg-netflix-black"
+        >
             <MovieCarousel />
 
             <MovieCard
+                title="Phim hành động"
+                searchTerm={SEARCH_TERMS.ACTION}
+                maxDisplay={10}
+            />
+
+            <MovieCard
                 title="Phim mới ra mắt"
-                movies={continueWatching}
+                searchTerm={SEARCH_TERMS.NEW_MOVIES}
+                maxDisplay={10}
             />
 
             <MovieCard
-                title="Phim ngắn - Xem là yêu"
-                movies={hotMovies}
-            />
-
-            <MovieCard
-                title="Phim lẻ nổi bật"
-                movies={popularMovies}
+                title="Phim nổi bật"
+                searchTerm={SEARCH_TERMS.POPULAR}
+                maxDisplay={10}
             />
         </ScrollView>
     );
