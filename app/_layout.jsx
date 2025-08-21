@@ -95,6 +95,19 @@ export default function RootLayout() {
                                 headerLeft: () => <HeaderBackButton />,
                             }}
                         />
+
+                        <Tabs.Screen
+                            name="movie/[id]"
+                            options={{
+                                href: null,
+                                headerTitle: '',
+                                headerLeft: () => <HeaderBackButton />,
+                                headerTransparent: true,
+                                headerStyle: {
+                                    backgroundColor: 'transparent',
+                                },
+                            }}
+                        />
                     </Tabs>
                 </HeaderBgContext.Provider>
             </GluestackUIProvider>

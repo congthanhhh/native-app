@@ -6,6 +6,7 @@ import { getMoviesBySearch } from '@/api/service/movieService';
 
 export default function MovieCard({
     title,
+    typeCategory,
     searchTerm, // Thay vì nhận movies, chỉ cần searchTerm
     maxDisplay = 10
 }) {
@@ -21,7 +22,7 @@ export default function MovieCard({
     const loadInitialMovies = async () => {
         setLoading(true);
         try {
-            const result = await getMoviesBySearch(searchTerm, maxDisplay);
+            const result = await getMoviesBySearch(searchTerm, typeCategory, maxDisplay);
             setMovies(result.movies);
             setTotalResults(result.totalResults);
         } catch (error) {
@@ -45,6 +46,10 @@ export default function MovieCard({
         <TouchableOpacity
             className="mr-[14px]"
             onPress={() => router.push(`/movie/${item.imdbID}`)}
+        // router.push({
+        //     pathname: '/movie/[movieId]', 
+        //     params: { movieId: item.imdbID }
+        // })
         >
             <View className="w-44">
                 <Image
