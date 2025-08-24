@@ -90,7 +90,7 @@ export default function MovieDetailScreen() {
                     />
                     <View className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/80" />
                     <View className="absolute inset-0 bg-netflix-transparentBlack" />
-                    {/* Multiple Gradient Overlays for better text visibility */}
+
                     <View className="absolute inset-0 bg-black/20" />
                     <View
                         className="absolute inset-0"

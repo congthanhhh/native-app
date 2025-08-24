@@ -3,12 +3,13 @@ import { Text } from '@/components/ui/text';
 import { useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { getMoviesBySearch } from '@/api/service/movieService';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function MovieCard({
     title,
     typeCategory,
-    searchTerm, // Thay vì nhận movies, chỉ cần searchTerm
-    maxDisplay = 10
+    searchTerm,
+    // Bỏ maxDisplay = 10
 }) {
     const router = useRouter();
     const [movies, setMovies] = useState([]);
@@ -22,7 +23,8 @@ export default function MovieCard({
     const loadInitialMovies = async () => {
         setLoading(true);
         try {
-            const result = await getMoviesBySearch(searchTerm, typeCategory, maxDisplay);
+            // Load page 1 (tối đa 10 movies)
+            const result = await getMoviesBySearch(searchTerm, typeCategory, 1);
             setMovies(result.movies);
             setTotalResults(result.totalResults);
         } catch (error) {
@@ -37,6 +39,7 @@ export default function MovieCard({
             pathname: '/category/[id]',
             params: {
                 searchTerm: searchTerm,
+                typeCategory: typeCategory,
                 title: title
             }
         });
@@ -46,17 +49,20 @@ export default function MovieCard({
         <TouchableOpacity
             className="mr-[14px]"
             onPress={() => router.push(`/movie/${item.imdbID}`)}
-        // router.push({
-        //     pathname: '/movie/[movieId]', 
-        //     params: { movieId: item.imdbID }
-        // })
         >
             <View className="w-44">
-                <Image
-                    source={{ uri: item.poster }}
-                    className="w-full h-56 rounded-lg"
-                    resizeMode="cover"
-                />
+                {item.poster !== "N/A" ? (
+                    <Image
+                        source={{ uri: item.poster }}
+                        className="w-full h-56 rounded-lg"
+                        resizeMode="cover"
+                    />
+                ) : (
+                    <View className="w-full h-56 rounded-lg bg-netflix-darkGray items-center justify-center">
+                        <Ionicons name="film-outline" size={40} color="#666" />
+                        <Text className="text-netflix-lightGray text-xs mt-2">No Image</Text>
+                    </View>
+                )}
                 <Text
                     className="text-netflix-white text-sm mt-2 text-center"
                     numberOfLines={2}
@@ -85,7 +91,8 @@ export default function MovieCard({
                 <Text className="text-netflix-white text-xl font-semibold">
                     {title}
                 </Text>
-                {totalResults > maxDisplay && (
+                {/* Hiển thị "Xem thêm" nếu có nhiều hơn 10 kết quả (tức là có page 2) */}
+                {totalResults > 10 && (
                     <TouchableOpacity onPress={handleSeeMore}>
                         <Text className="text-netflix-lightGray text-lg">
                             Xem thêm

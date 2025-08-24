@@ -24,39 +24,34 @@ export default function HomeScreen() {
             className="flex-1 bg-netflix-black"
         >
             <MovieCarousel />
-
-            {/* <MovieCard
+            {/* 
+            <MovieCard
                 title="Phim hành động"
                 searchTerm={SEARCH_TERMS.ACTION}
                 typeCategory={TYPE_MOVIE}
-                maxDisplay={10}
             />
 
             <MovieCard
                 title="Phim mới ra mắt"
                 searchTerm={SEARCH_TERMS.NEW_MOVIES}
                 typeCategory={TYPE_MOVIE}
-                maxDisplay={10}
             />
 
             <MovieCard
                 title="Phim Disney"
                 searchTerm={SEARCH_TERMS.DISNEY}
                 typeCategory={TYPE_MOVIE}
-                maxDisplay={10}
-            />
+            /> */}
 
             <MovieCard
                 title="Phim nổi bật"
-                searchTerm={SEARCH_TERMS.POPULAR}
+                searchTerm={SEARCH_TERMS.NEW_MOVIES}
                 typeCategory={TYPE_MOVIE}
-                maxDisplay={10}
-            /> */}
+            />
             <MovieCard
                 title="Series Hot"
-                searchTerm="breaking bad"
+                searchTerm={SEARCH_TERMS.COMEDY}
                 typeCategory={TYPE_SERIES}
-                maxDisplay={10}
             />
 
         </ScrollView>

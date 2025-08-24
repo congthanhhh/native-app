@@ -1,45 +1,47 @@
+import { TYPE_SERIES } from "@/const/OMDbapi";
 import apiClient from "../axiosConfig"
 
-export const getMoviesBySearch = async (searchTerm, typeCategory, limit = 20, page = 1) => {
+export const getMoviesBySearch = async (searchTerm, typeCategory, page = 1) => {
     try {
         const response = await apiClient.get("/", {
             params: {
                 s: searchTerm,
                 type: typeCategory,
+                page: page, // Thêm page parameter
             }
         });
+
         if (response.data.Response === 'True') {
-            const movies = response.data.Search.slice(0, limit).map((movie, index) => ({
-                id: `${movie.imdbID}_${searchTerm}_${index}`,
+            const movies = response.data.Search.map((movie, index) => ({
+                id: `${movie.imdbID}_${searchTerm}_${page}_${index}`,
                 imdbID: movie.imdbID,
                 title: movie.Title,
                 poster: movie.Poster,
                 year: movie.Year,
-            }));
+            }))
+                .sort((a, b) => parseInt(b.year) - parseInt(a.year));
 
             return {
                 movies,
-                totalResults: parseInt(response.data.totalResults)
+                totalResults: parseInt(response.data.totalResults),
+                currentPage: page,
+                hasMorePages: movies.length === 10
             };
         } else {
-            console.log('API Error:', response.data.Error);
-            return { movies: [], totalResults: 0 };
+            return { movies: [], totalResults: 0, currentPage: page, hasMorePages: false };
         }
     } catch (error) {
-        console.error('Error fetching movies:', error);
-        return { movies: [], totalResults: 0 };
+        return { movies: [], totalResults: 0, currentPage: page, hasMorePages: false };
     }
 };
 
-// Function riêng cho MovieCarousel với details
-export const getMoviesWithDetails = async (searchTerm, typeCategory, limit = 20) => {
+// MovieCarousel với details
+export const getMoviesWithDetails = async (searchTerm, limit = 3) => {
     try {
-        // Tạo params object động
-        const params = {};
-
-        if (searchTerm) {
-            params.s = searchTerm;
-        }
+        const params = {
+            s: searchTerm,
+            type: 'movie'
+        };
 
         const response = await apiClient.get("/", { params });
         if (response.data.Response === 'True') {
@@ -58,18 +60,18 @@ export const getMoviesWithDetails = async (searchTerm, typeCategory, limit = 20)
                             id: `${movie.imdbID}_${searchTerm}_${index}`,
                             imdbID: movie.imdbID,
                             title: movie.Title,
-                            poster: movie.Poster,
+                            poster: movie.Poster !== "N/A" ? movie.Poster : "N/A",
                             year: movie.Year,
-                            plot: detailResponse.data.Plot || 'Không có mô tả',
+                            plot: detailResponse.data.Plot || 'Khám phá bộ phim đặc sắc này...',
                         };
                     } catch (error) {
                         return {
                             id: `${movie.imdbID}_${searchTerm}_${index}`,
                             imdbID: movie.imdbID,
                             title: movie.Title,
-                            poster: movie.Poster,
+                            poster: movie.Poster !== "N/A" ? movie.Poster : "N/A",
                             year: movie.Year,
-                            plot: 'Không có mô tả',
+                            plot: 'Khám phá bộ phim đặc sắc này...',
                         };
                     }
                 })
@@ -80,11 +82,9 @@ export const getMoviesWithDetails = async (searchTerm, typeCategory, limit = 20)
                 totalResults: parseInt(response.data.totalResults)
             };
         } else {
-            console.log('API Error:', response.data.Error);
             return { movies: [], totalResults: 0 };
         }
     } catch (error) {
-        console.error('Error fetching movies:', error);
         return { movies: [], totalResults: 0 };
     }
 };
@@ -104,7 +104,7 @@ export const getMovieDetails = async (imdbID) => {
                 id: response.data.imdbID,
                 imdbID: response.data.imdbID,
                 title: response.data.Title,
-                poster: response.data.Poster !== "N/A" ? response.data.Poster : "https://via.placeholder.com/300x450?text=No+Image",
+                poster: response.data.Poster !== "N/A" ? response.data.Poster : "N/A",
                 year: response.data.Year,
                 plot: response.data.Plot,
                 rating: response.data.imdbRating,
@@ -120,8 +120,7 @@ export const getMovieDetails = async (imdbID) => {
                 totalSeasons: response.data.totalSeasons, // Số seasons nếu là series
             };
 
-            // Nếu là series, lấy thêm thông tin seasons
-            if (response.data.Type === 'series' && response.data.totalSeasons) {
+            if (response.data.Type === TYPE_SERIES && response.data.totalSeasons) {
                 movieData.seasons = await getSeriesSeasons(imdbID, parseInt(response.data.totalSeasons));
             }
 
@@ -138,7 +137,6 @@ export const getMovieDetails = async (imdbID) => {
     }
 };
 
-// Hàm lấy thông tin seasons của series
 export const getSeriesSeasons = async (imdbID, totalSeasons) => {
     try {
         const seasonPromises = [];
@@ -163,7 +161,7 @@ export const getSeriesSeasons = async (imdbID, totalSeasons) => {
             if (seasonResponse.data.Response === 'True') {
                 return {
                     season: index + 1,
-                    episodes: seasonResponse.data.Episodes?.slice(0, 8) || [], // Giới hạn 8 tập đầu
+                    episodes: seasonResponse.data.Episodes?.slice(0, 8) || [], // 8 tập đầu
                 };
             }
             return null;

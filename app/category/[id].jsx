@@ -1,4 +1,4 @@
-import { View, FlatList, Image, TouchableOpacity } from 'react-native';
+import { View, FlatList, Image, TouchableOpacity, TouchableWithoutFeedback } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -11,32 +11,62 @@ export default function MovieMore() {
     const router = useRouter();
     const [movies, setMovies] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
 
     useEffect(() => {
-        setMovies([]);
-        setPage(1);
-        setHasMore(true);
-        loadMovies();
+        loadInitialPages();
     }, [searchTerm]);
 
-    const loadMovies = async () => {
+    // Load page 1 và page 2 ngay khi vào trang "Xem thêm"
+    const loadInitialPages = async () => {
         setLoading(true);
+        setMovies([]);
+        setPage(2); // Set page hiện tại là 2 vì đã load 2 pages
+
         try {
-            const result = await getMoviesBySearch(searchTerm, 20);
-            setMovies(result.movies);
-            setHasMore(false);
+            // Load page 1
+            const page1Result = await getMoviesBySearch(searchTerm, null, 1);
+
+            // Load page 2
+            const page2Result = await getMoviesBySearch(searchTerm, null, 2);
+
+            // Combine cả 2 pages
+            const allMovies = [...page1Result.movies, ...page2Result.movies];
+            setMovies(allMovies);
+
+            // Kiểm tra có page 3 không
+            setHasMore(page2Result.hasMorePages);
+
         } catch (error) {
-            console.error('Error loading movies:', error);
+            console.error('Error loading initial pages:', error);
         } finally {
             setLoading(false);
         }
     };
 
+    // Load thêm page tiếp theo khi scroll xuống cuối
     const loadMore = () => {
-        if (!loading && hasMore) {
-            loadMovies(page + 1);
+        if (!loadingMore && hasMore) {
+            loadNextPage();
+        }
+    };
+
+    const loadNextPage = async () => {
+        setLoadingMore(true);
+        try {
+            const nextPage = page + 1;
+            const result = await getMoviesBySearch(searchTerm, null, nextPage);
+
+            setMovies(prev => [...prev, ...result.movies]);
+            setPage(nextPage);
+            setHasMore(result.hasMorePages);
+
+        } catch (error) {
+            console.error('Error loading more movies:', error);
+        } finally {
+            setLoadingMore(false);
         }
     };
 
@@ -58,25 +88,27 @@ export default function MovieMore() {
 
     return (
         <SafeAreaProvider>
-            <View className="flex-1 bg-netflix-black px-4 pt-28">
-                <Text className="text-netflix-white text-2xl font-bold mb-6">
-                    {title}
-                </Text>
+            <TouchableWithoutFeedback onPress={() => setShowSeasonDropdown(false)}>
+                <View className="flex-1 bg-netflix-black px-4 pt-12">
+                    <Text className="text-netflix-white text-2xl font-bold mb-6">
+                        {title}
+                    </Text>
 
-                <FlatList
-                    data={movies}
-                    renderItem={renderMovie}
-                    keyExtractor={(item, index) => `${item.imdbID}_${index}`}
-                    numColumns={2}
-                    columnWrapperStyle={{ justifyContent: 'space-between' }}
-                    onEndReached={loadMore}
-                    onEndReachedThreshold={0.5}
-                    ListFooterComponent={
-                        loading ? <ActivityIndicator size="large" color="#e50914" /> : null
-                    }
-                    showsVerticalScrollIndicator={false}
-                />
-            </View>
+                    <FlatList
+                        data={movies}
+                        renderItem={renderMovie}
+                        keyExtractor={(item, index) => `${item.imdbID}_${index}`}
+                        numColumns={2}
+                        columnWrapperStyle={{ justifyContent: 'space-between' }}
+                        onEndReached={loadMore}
+                        onEndReachedThreshold={0.5}
+                        ListFooterComponent={
+                            loading || loadingMore ? <ActivityIndicator size="large" color="#e50914" /> : null
+                        }
+                        showsVerticalScrollIndicator={false}
+                    />
+                </View>
+            </TouchableWithoutFeedback>
         </SafeAreaProvider>
     );
 }

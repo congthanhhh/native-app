@@ -56,11 +56,18 @@ export default function MovieCarousel() {
                         onPress={() => router.push(`/movie/${movie.imdbID}`)} // Thêm navigation
                     >
                         {/* Background Image */}
-                        <Image
-                            source={{ uri: movie.poster !== "N/A" ? movie.poster : "https://via.placeholder.com/400x600?text=No+Image" }}
-                            className="absolute inset-0 w-full h-full"
-                            resizeMode="cover"
-                        />
+                        {movie.poster !== "N/A" ? (
+                            <Image
+                                source={{ uri: movie.poster }}
+                                className="absolute inset-0 w-full h-full"
+                                resizeMode="cover"
+                            />
+                        ) : (
+                            <View className="absolute inset-0 w-full h-full bg-netflix-darkGray items-center justify-center">
+                                <Ionicons name="film-outline" size={80} color="#666" />
+                                <Text className="text-netflix-lightGray text-lg">No Image</Text>
+                            </View>
+                        )}
 
                         {/* Gradient Overlay */}
                         <View className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/80" />

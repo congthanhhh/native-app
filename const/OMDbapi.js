@@ -2,7 +2,7 @@ export const TYPE_MOVIE = 'movie';
 export const TYPE_SERIES = 'series';
 
 export const SEARCH_TERMS = {
-    NEW_MOVIES: '2024',
+    NEW_MOVIES: '2025',
     ACTION: 'marvel',
     POPULAR: 'star wars',
     COMEDY: 'comedy',
