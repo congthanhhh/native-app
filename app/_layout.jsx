@@ -97,15 +97,10 @@ export default function RootLayout() {
                         />
 
                         <Tabs.Screen
-                            name="movie/[id]"
+                            name="movie"
                             options={{
-                                href: null,
-                                headerTitle: '',
-                                headerLeft: () => <HeaderBackButton />,
-                                headerTransparent: true,
-                                headerStyle: {
-                                    backgroundColor: 'transparent',
-                                },
+                                href: null, // Hide entire movie section from tabs
+                                headerShown: false, // No header for nested routes
                             }}
                         />
                     </Tabs>

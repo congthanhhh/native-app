@@ -96,14 +96,20 @@ export default function MovieCarousel() {
                                         <Ionicons name="add" size={28} color="#fff" />
                                         <Text className="text-netflix-white text-xs mt-1">My List</Text>
                                     </View>
-                                    <Button className="bg-netflix-white rounded-md mr-4 flex-row items-center px-6 py-2">
+                                    <Button
+                                        className="bg-netflix-white rounded-md mr-4 flex-row items-center px-6 py-2"
+                                        onPress={() => router.push(`/movie/${movie.imdbID}/watch`)}
+                                    >
                                         <Ionicons name="play" size={18} color="#000" style={{ marginRight: 8 }} />
                                         <ButtonText className="text-black font-semibold">Play</ButtonText>
                                     </Button>
-                                    <View className="items-center">
+                                    <TouchableOpacity
+                                        className="items-center"
+                                        onPress={() => router.push(`/movie/${movie.imdbID}`)}
+                                    >
                                         <Ionicons name="information-circle-outline" size={28} color="#fff" />
                                         <Text className="text-netflix-white text-xs mt-1">Info</Text>
-                                    </View>
+                                    </TouchableOpacity>
                                 </View>
                             </View>
                         </View>
