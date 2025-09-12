@@ -1,31 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import apiClient from '../../api/axiosConfig';
+import { getMoviesBySearch, getMoviesWithDetails, getMovieDetails } from '@/api/service/movieService';
 import { TYPE_SERIES } from '@/const/OMDbapi';
 
 export const fetchMoviesBySearch = createAsyncThunk(
     'movie/fetchMoviesBySearch',
     async ({ searchTerm, typeCategory, page = 1 }, { rejectWithValue }) => {
         try {
-            const response = await apiClient.get('/', {
-                params: { s: searchTerm, type: typeCategory, page }
-            });
-            if (response.data.Response === 'True') {
-                const movies = response.data.Search.map((movie, index) => ({
-                    id: `${movie.imdbID}_${searchTerm}_${page}_${index}`,
-                    imdbID: movie.imdbID,
-                    title: movie.Title,
-                    poster: movie.Poster,
-                    year: movie.Year,
-                })).sort((a, b) => parseInt(b.year) - parseInt(a.year));
-                return {
-                    movies,
-                    totalResults: parseInt(response.data.totalResults),
-                    currentPage: page,
-                    hasMorePages: movies.length === 10
-                };
-            } else {
-                return { movies: [], totalResults: 0, currentPage: page, hasMorePages: false };
-            }
+            const result = await getMoviesBySearch(searchTerm, typeCategory, page);
+            return result;
         } catch (error) {
             return rejectWithValue('Fetch movies by search failed');
         }
@@ -36,39 +19,8 @@ export const fetchMoviesWithDetails = createAsyncThunk(
     'movie/fetchMoviesWithDetails',
     async ({ searchTerm, limit = 3 }, { rejectWithValue }) => {
         try {
-            const params = { s: searchTerm, type: 'movie' };
-            const response = await apiClient.get('/', { params });
-            if (response.data.Response === 'True') {
-                const moviesWithDetails = await Promise.all(
-                    response.data.Search.slice(0, limit).map(async (movie, index) => {
-                        try {
-                            const detailResponse = await apiClient.get('/', {
-                                params: { i: movie.imdbID, plot: 'short' }
-                            });
-                            return {
-                                id: `${movie.imdbID}_${searchTerm}_${index}`,
-                                imdbID: movie.imdbID,
-                                title: movie.Title,
-                                poster: movie.Poster !== 'N/A' ? movie.Poster : 'N/A',
-                                year: movie.Year,
-                                plot: detailResponse.data.Plot || 'Khám phá bộ phim đặc sắc này...'
-                            };
-                        } catch {
-                            return {
-                                id: `${movie.imdbID}_${searchTerm}_${index}`,
-                                imdbID: movie.imdbID,
-                                title: movie.Title,
-                                poster: movie.Poster !== 'N/A' ? movie.Poster : 'N/A',
-                                year: movie.Year,
-                                plot: 'Khám phá bộ phim đặc sắc này...'
-                            };
-                        }
-                    })
-                );
-                return { movies: moviesWithDetails, totalResults: parseInt(response.data.totalResults) };
-            } else {
-                return { movies: [], totalResults: 0 };
-            }
+            const result = await getMoviesWithDetails(searchTerm, limit);
+            return result;
         } catch (error) {
             return rejectWithValue('Fetch movies with details failed');
         }
@@ -79,32 +31,11 @@ export const fetchMovieDetails = createAsyncThunk(
     'movie/fetchMovieDetails',
     async (imdbID, { rejectWithValue }) => {
         try {
-            const response = await apiClient.get('/', {
-                params: { i: imdbID, plot: 'full' }
-            });
-            if (response.data.Response === 'True') {
-                const movieData = {
-                    id: response.data.imdbID,
-                    imdbID: response.data.imdbID,
-                    title: response.data.Title,
-                    poster: response.data.Poster !== 'N/A' ? response.data.Poster : 'N/A',
-                    year: response.data.Year,
-                    plot: response.data.Plot,
-                    rating: response.data.imdbRating,
-                    genre: response.data.Genre,
-                    director: response.data.Director,
-                    actors: response.data.Actors,
-                    runtime: response.data.Runtime,
-                    released: response.data.Released,
-                    language: response.data.Language,
-                    country: response.data.Country,
-                    awards: response.data.Awards,
-                    type: response.data.Type,
-                    totalSeasons: response.data.totalSeasons,
-                };
-                return { success: true, movie: movieData };
+            const result = await getMovieDetails(imdbID);
+            if (result) {
+                return { success: true, movie: result };
             } else {
-                return { success: false, error: response.data.Error };
+                return { success: false, error: 'Not found' };
             }
         } catch (error) {
             return { success: false, error: error.message };
