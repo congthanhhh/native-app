@@ -12,13 +12,20 @@ export const getMoviesBySearch = async (searchTerm, typeCategory, page = 1) => {
         });
 
         if (response.data.Response === 'True') {
-            const movies = response.data.Search.map((movie, index) => ({
-                id: `${movie.imdbID}_${searchTerm}_${page}_${index}`,
-                imdbID: movie.imdbID,
-                title: movie.Title,
-                poster: movie.Poster,
-                year: movie.Year,
-            }))
+            const movies = response.data.Search
+                .filter(movie => 
+                    movie.imdbID && 
+                    movie.Title && 
+                    movie.Year
+                ) // Filter movies with complete information
+                .map((movie, index) => ({
+                    id: `${movie.imdbID}_${searchTerm}_${page}_${index}`,
+                    imdbID: movie.imdbID,
+                    title: movie.Title,
+                    poster: movie.Poster !== 'N/A' ? movie.Poster : null,
+                    year: movie.Year,
+                    type: movie.Type || 'movie',
+                }))
                 .sort((a, b) => parseInt(b.year) - parseInt(a.year));
 
             return {
