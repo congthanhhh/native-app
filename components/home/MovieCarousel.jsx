@@ -2,40 +2,34 @@ import { View, ScrollView, Dimensions, Image, TouchableOpacity } from 'react-nat
 import { Text } from '@/components/ui/text';
 import { Button, ButtonText } from '@/components/ui/button';
 import { Ionicons } from '@expo/vector-icons';
-import { useState, useEffect } from 'react';
-import { getMoviesWithDetails } from '@/api/service/movieService';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchMoviesWithDetails } from '@/store/slice/movieSlice';
 import { useRouter } from 'expo-router';
 import { SEARCH_TERMS } from '@/const/OMDbapi';
 
 const { width } = Dimensions.get('window');
 
 export default function MovieCarousel() {
-    const [featuredMovies, setFeaturedMovies] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const dispatch = useDispatch();
+    const { movies: featuredMovies, loading, error } = useSelector((state) => state.movie.featured);
     const router = useRouter();
 
     useEffect(() => {
-        loadFeaturedMovies();
+        dispatch(fetchMoviesWithDetails({ searchTerm: SEARCH_TERMS.SPIDER_MAN, limit: 5 }));
     }, []);
-
-    const loadFeaturedMovies = async () => {
-        setLoading(true);
-        try {
-            const result = await getMoviesWithDetails(SEARCH_TERMS.SPIDER_MAN, 5);
-            if (result.movies) {
-                setFeaturedMovies(result.movies);
-            }
-        } catch (error) {
-            console.error('Error loading featured movies:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     if (loading) {
         return (
             <View className="h-[450px] bg-netflix-darkGray justify-center items-center">
                 <Text className="text-netflix-white text-lg">Đang tải phim...</Text>
+            </View>
+        );
+    }
+    if (error) {
+        return (
+            <View className="h-[450px] bg-netflix-darkGray justify-center items-center">
+                <Text className="text-netflix-white text-lg">{error}</Text>
             </View>
         );
     }
@@ -50,13 +44,13 @@ export default function MovieCarousel() {
             >
                 {featuredMovies.map((movie) => (
                     <TouchableOpacity
-                        key={movie.id}
+                        key={movie.imdbID}
                         className="relative justify-end"
                         style={{ width }}
-                        onPress={() => router.push(`/movie/${movie.imdbID}`)} // Thêm navigation
+                        onPress={() => router.push(`/movie/${movie.imdbID}`)}
                     >
                         {/* Background Image */}
-                        {movie.poster !== "N/A" ? (
+                        {movie.poster && movie.poster !== "N/A" ? (
                             <Image
                                 source={{ uri: movie.poster }}
                                 className="absolute inset-0 w-full h-full"
@@ -86,7 +80,7 @@ export default function MovieCarousel() {
                                 numberOfLines={3}
                                 style={{ lineHeight: 24 }}
                             >
-                                {movie.plot || 'Khám phá bộ phim đặc sắc này...'}
+                                {'Khám phá bộ phim đặc sắc này...'}
                             </Text>
 
                             {/* Buttons */}

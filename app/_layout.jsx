@@ -2,6 +2,7 @@ import { Tabs, useRouter } from "expo-router";
 import { Ionicons } from '@expo/vector-icons';
 import "@/global.css";
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
+import ReduxProvider from "@/components/ReduxProvider";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Pressable } from "@/components/ui/pressable";
@@ -33,79 +34,77 @@ export default function RootLayout() {
             </Pressable>
         );
     }
-
     return (
-        <SafeAreaProvider>
-            <GluestackUIProvider mode="light">
-                <StatusBar style="light" />
-                <HeaderBgContext.Provider value={{ headerBgColor, setHeaderBgColor }}>
-                    <Tabs
-                        screenOptions={{
-                            tabBarActiveTintColor: '#e50914',
-                            tabBarInactiveTintColor: 'gray',
-                            tabBarStyle: {
-                                backgroundColor: '#141414',
-                            },
-                            headerTransparent: true,
-                            headerStyle: {
-                                backgroundColor: headerBgColor,
-                            },
-                            headerTintColor: '#fff',
-                            tabBarShowLabel: true,
-                            headerRight: () => <HeaderButtons />,
-                        }}
-                    >
-                        <Tabs.Screen
-                            name="index"
-                            options={{
-                                title: 'Trang chủ',
-                                tabBarIcon: ({ color, size }) => (
-                                    <Ionicons name="home" size={size} color={color} />
-                                ),
+        <ReduxProvider>
+            <SafeAreaProvider>
+                <GluestackUIProvider mode="light">
+                    <StatusBar style="light" />
+                    <HeaderBgContext.Provider value={{ headerBgColor, setHeaderBgColor }}>
+                        <Tabs
+                            screenOptions={{
+                                tabBarActiveTintColor: '#e50914',
+                                tabBarInactiveTintColor: 'gray',
+                                tabBarStyle: {
+                                    backgroundColor: '#141414',
+                                },
+                                headerTransparent: true,
+                                headerStyle: {
+                                    backgroundColor: headerBgColor,
+                                },
+                                headerTintColor: '#fff',
+                                tabBarShowLabel: true,
+                                headerRight: () => <HeaderButtons />,
                             }}
-                        />
-                        <Tabs.Screen
-                            name="favorites"
-                            options={{
-                                title: 'My List',
-                                tabBarIcon: ({ color, size }) => (
-                                    <Ionicons name="heart" size={size} color={color} />
-                                ),
-                            }}
-                        />
-                        <Tabs.Screen
-                            name="account"
-                            options={{
-                                tabBarIcon: ({ color, size }) => (
-                                    <Ionicons name="settings" size={size} color={color} />
-                                ),
-                            }}
-                        />
-                        <Tabs.Screen
-                            name="search"
-                            options={{
-                                href: null, // Ẩn khỏi tabs
-                            }}
-                        />
-                        <Tabs.Screen
-                            name="category/[id]"
-                            options={{
-                                href: null,
-                                headerTitle: '',
-                                headerLeft: () => <HeaderBackButton />,
-                            }}
-                        />
-
-                        <Tabs.Screen
-                            name="movie"
-                            options={{
-                                href: null, // Hide entire movie section from tabs
-                                headerShown: false, // No header for nested routes
-                            }}
-                        />
-                    </Tabs>
-                </HeaderBgContext.Provider>
-            </GluestackUIProvider>
-        </SafeAreaProvider>
+                        >
+                            <Tabs.Screen
+                                name="index"
+                                options={{
+                                    tabBarLabel: 'Trang chủ',
+                                    tabBarIcon: ({ color, size }) => (
+                                        <Ionicons name="home" size={size} color={color} />
+                                    ),
+                                    headerTitle: '',
+                                    headerShown: true,
+                                    headerTransparent: true,
+                                    headerLeft: () => null,
+                                }}
+                            />
+                            <Tabs.Screen
+                                name="favorites"
+                                options={{
+                                    tabBarLabel: 'Yêu thích',
+                                    tabBarIcon: ({ color, size }) => (
+                                        <Ionicons name="heart" size={size} color={color} />
+                                    ),
+                                    headerTitle: 'Yêu thích',
+                                    headerTransparent: true,
+                                    headerLeft: () => <HeaderBackButton />,
+                                }}
+                            />
+                            <Tabs.Screen
+                                name="account"
+                                options={{
+                                    tabBarLabel: 'Tài khoản',
+                                    tabBarIcon: ({ color, size }) => (
+                                        <Ionicons name="person" size={size} color={color} />
+                                    ),
+                                    headerTitle: 'Tài khoản',
+                                    headerTransparent: true,
+                                    headerLeft: () => <HeaderBackButton />,
+                                }}
+                            />
+                            <Tabs.Screen
+                                name="movie"
+                                options={{
+                                    href: null, // Hide entire movie section from tabs
+                                    headerShown: false, // No header for nested routes
+                                }}
+                            />
+                        </Tabs>
+                    </HeaderBgContext.Provider>
+                </GluestackUIProvider>
+            </SafeAreaProvider>
+        </ReduxProvider>
     );
+    // ...existing code...
 }

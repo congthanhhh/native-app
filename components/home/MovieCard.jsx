@@ -1,8 +1,9 @@
 import { FlatList, View, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Text } from '@/components/ui/text';
 import { useRouter } from 'expo-router';
-import { useState, useEffect } from 'react';
-import { getMoviesBySearch } from '@/api/service/movieService';
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchMoviesBySearch } from '@/store/slice/movieSlice';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function MovieCard({
@@ -12,27 +13,13 @@ export default function MovieCard({
     // Bỏ maxDisplay = 10
 }) {
     const router = useRouter();
-    const [movies, setMovies] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [totalResults, setTotalResults] = useState(0);
+    const dispatch = useDispatch();
+    const searchKey = `${searchTerm || ''}_${typeCategory || ''}`;
+    const searchState = useSelector((state) => state.movie.search[searchKey] || { movies: [], loading: false, error: null });
 
     useEffect(() => {
-        loadInitialMovies();
+        dispatch(fetchMoviesBySearch({ searchTerm, typeCategory }));
     }, [searchTerm]);
-
-    const loadInitialMovies = async () => {
-        setLoading(true);
-        try {
-            // Load page 1 (tối đa 10 movies)
-            const result = await getMoviesBySearch(searchTerm, typeCategory, 1);
-            setMovies(result.movies);
-            setTotalResults(result.totalResults);
-        } catch (error) {
-            console.error('Error loading movies:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleSeeMore = () => {
         router.push({
@@ -51,7 +38,7 @@ export default function MovieCard({
             onPress={() => router.push(`/movie/${item.imdbID}`)}
         >
             <View className="w-44">
-                {item.poster !== "N/A" ? (
+                {item.poster && item.poster !== "N/A" ? (
                     <Image
                         source={{ uri: item.poster }}
                         className="w-full h-56 rounded-lg"
@@ -73,13 +60,24 @@ export default function MovieCard({
         </TouchableOpacity>
     );
 
-    if (loading) {
+    if (searchState.loading) {
         return (
             <View className="mt-6 px-4">
                 <Text className="text-netflix-white text-xl font-semibold mb-4">
                     {title}
                 </Text>
                 <ActivityIndicator size="large" color="#e50914" />
+            </View>
+        );
+    }
+
+    if (searchState.error) {
+        return (
+            <View className="mt-6 px-4">
+                <Text className="text-netflix-white text-xl font-semibold mb-4">
+                    {title}
+                </Text>
+                <Text className="text-netflix-lightGray">{error}</Text>
             </View>
         );
     }
@@ -91,21 +89,12 @@ export default function MovieCard({
                 <Text className="text-netflix-white text-xl font-semibold">
                     {title}
                 </Text>
-                {/* Hiển thị "Xem thêm" nếu có nhiều hơn 10 kết quả (tức là có page 2) */}
-                {totalResults > 10 && (
-                    <TouchableOpacity onPress={handleSeeMore}>
-                        <Text className="text-netflix-lightGray text-lg">
-                            Xem thêm
-                        </Text>
-                    </TouchableOpacity>
-                )}
             </View>
-
             {/* FlatList */}
             <FlatList
-                data={movies}
+                data={searchState.movies}
                 renderItem={renderMovie}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item, index) => `${item.imdbID}_${index}`}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 16 }}
