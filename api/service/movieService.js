@@ -1,3 +1,21 @@
+// Lấy chi tiết phim OMDb chỉ với movieId (dùng cho favorite)
+export const getMovieByIdFromOMDb = async (movieId) => {
+    try {
+        const response = await apiClient.get('/', {
+            params: {
+                i: movieId,
+                plot: 'full',
+            },
+        });
+        if (response.data.Response === 'True') {
+            return { success: true, movie: response.data };
+        } else {
+            return { success: false, error: response.data.Error };
+        }
+    } catch (error) {
+        return { success: false, error: error.message };
+    }
+};
 import { TYPE_SERIES } from "@/const/OMDbapi";
 import apiClient from "../axiosConfig"
 

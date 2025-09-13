@@ -8,23 +8,34 @@ import { fetchMoviesBySearch } from '@/store/slice/movieSlice';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function MovieMore() {
-    const { searchTerm, title } = useLocalSearchParams();
+    const { searchTerm, typeCategory, title } = useLocalSearchParams();
     const router = useRouter();
     const dispatch = useDispatch();
-    const { movies, loading, error, currentPage, hasMorePages } = useSelector((state) => state.movie);
     const [loadingMore, setLoadingMore] = useState(false);
+    // Lấy state cho page 1 và page 2, gộp lại
+    const searchKey1 = `${searchTerm || ''}_${typeCategory || ''}_page1`;
+    const searchKey2 = `${searchTerm || ''}_${typeCategory || ''}_page2`;
+    const searchState = useSelector((state) => {
+        if (!state.movie || !state.movie.search) return { movies: [], loading: false, error: null };
+        const page1 = state.movie.search[searchKey1] || { movies: [], loading: false, error: null };
+        const page2 = state.movie.search[searchKey2] || { movies: [], loading: false, error: null };
+        return {
+            movies: [...(page1.movies || []), ...(page2.movies || [])],
+            loading: page1.loading || page2.loading,
+            error: page1.error || page2.error,
+        };
+    });
 
+    // Khi vào màn này, fetch page 1 và page 2
     useEffect(() => {
-        dispatch(fetchMoviesBySearch({ searchTerm, typeCategory: null, page: 1 }));
-    }, [searchTerm]);
+        dispatch(fetchMoviesBySearch({ searchTerm, typeCategory, page: 1 }));
+        dispatch(fetchMoviesBySearch({ searchTerm, typeCategory, page: 2 }));
+    }, [searchTerm, typeCategory]);
 
-    const loadMore = () => {
-        if (!loadingMore && hasMorePages) {
-            setLoadingMore(true);
-            dispatch(fetchMoviesBySearch({ searchTerm, typeCategory: null, page: currentPage + 1 }))
-                .finally(() => setLoadingMore(false));
-        }
-    };
+    // Xóa hoàn toàn allMovies và pagesLoaded
+
+    // Không loadMore khi scroll nữa
+    const loadMore = () => { };
 
     const renderMovie = ({ item }) => (
         <TouchableOpacity
@@ -40,7 +51,8 @@ export default function MovieMore() {
         </TouchableOpacity>
     );
 
-    if (loading) {
+    // Chỉ loading lần đầu khi chưa có phim
+    if (searchState.loading && searchState.movies.length === 0) {
         return (
             <View className="flex-1 bg-netflix-black justify-center items-center">
                 <ActivityIndicator size="large" color="#e50914" />
@@ -48,10 +60,10 @@ export default function MovieMore() {
             </View>
         );
     }
-    if (error) {
+    if (searchState.error) {
         return (
             <View className="flex-1 bg-netflix-black justify-center items-center">
-                <Text className="text-netflix-white mt-4">{error}</Text>
+                <Text className="text-netflix-white mt-4">{searchState.error}</Text>
             </View>
         );
     }
@@ -63,16 +75,12 @@ export default function MovieMore() {
                     {title}
                 </Text>
                 <FlatList
-                    data={movies}
+                    data={searchState.movies}
                     renderItem={renderMovie}
                     keyExtractor={(item, index) => `${item.imdbID}_${index}`}
                     numColumns={2}
                     columnWrapperStyle={{ justifyContent: 'space-between' }}
-                    onEndReached={loadMore}
-                    onEndReachedThreshold={0.5}
-                    ListFooterComponent={
-                        loading || loadingMore ? <ActivityIndicator size="large" color="#e50914" /> : null
-                    }
+                    // Không gọi loadMore khi scroll
                     showsVerticalScrollIndicator={false}
                 />
             </View>

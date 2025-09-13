@@ -58,17 +58,17 @@ const movieSlice = createSlice({
     reducers: {},
     extraReducers: (builder) => {
         builder
-            // Search movies (multi-key)
+            // Search movies (multi-key, mỗi page là 1 key riêng)
             .addCase(fetchMoviesBySearch.pending, (state, action) => {
-                const { searchTerm, typeCategory } = action.meta.arg;
-                const key = `${searchTerm || ''}_${typeCategory || ''}`;
-                if (!state.search[key]) state.search[key] = { movies: [], totalResults: 0, currentPage: 1, hasMorePages: false, loading: false, error: null };
+                const { searchTerm, typeCategory, page = 1 } = action.meta.arg;
+                const key = `${searchTerm || ''}_${typeCategory || ''}_page${page}`;
+                if (!state.search[key]) state.search[key] = { movies: [], totalResults: 0, currentPage: page, hasMorePages: false, loading: false, error: null };
                 state.search[key].loading = true;
                 state.search[key].error = null;
             })
             .addCase(fetchMoviesBySearch.fulfilled, (state, action) => {
-                const { searchTerm, typeCategory } = action.meta.arg;
-                const key = `${searchTerm || ''}_${typeCategory || ''}`;
+                const { searchTerm, typeCategory, page = 1 } = action.meta.arg;
+                const key = `${searchTerm || ''}_${typeCategory || ''}_page${page}`;
                 state.search[key].loading = false;
                 state.search[key].movies = action.payload.movies;
                 state.search[key].totalResults = action.payload.totalResults;
@@ -76,9 +76,9 @@ const movieSlice = createSlice({
                 state.search[key].hasMorePages = action.payload.hasMorePages;
             })
             .addCase(fetchMoviesBySearch.rejected, (state, action) => {
-                const { searchTerm, typeCategory } = action.meta.arg;
-                const key = `${searchTerm || ''}_${typeCategory || ''}`;
-                if (!state.search[key]) state.search[key] = { movies: [], totalResults: 0, currentPage: 1, hasMorePages: false, loading: false, error: null };
+                const { searchTerm, typeCategory, page = 1 } = action.meta.arg;
+                const key = `${searchTerm || ''}_${typeCategory || ''}_page${page}`;
+                if (!state.search[key]) state.search[key] = { movies: [], totalResults: 0, currentPage: page, hasMorePages: false, loading: false, error: null };
                 state.search[key].loading = false;
                 state.search[key].error = action.payload;
             })

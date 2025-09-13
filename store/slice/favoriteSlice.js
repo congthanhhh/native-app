@@ -1,41 +1,40 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from '@/api/axiosConfig';
+import { addFavorite as addFavoriteApi, removeFavorite as removeFavoriteApi, getFavorites } from '@/api/service/favoriteService';
 
-// Async thunk để fetch danh sách phim yêu thích từ backend
+// Async thunk để fetch danh sách favorite (không cần userId, token lấy từ AsyncStorage)
 export const fetchFavorites = createAsyncThunk(
     'favorite/fetchFavorites',
-    async (userId, { rejectWithValue }) => {
+    async (_, { rejectWithValue }) => {
         try {
-            const response = await axios.get(`/favorites/${userId}`);
-            return response.data;
+            const data = await getFavorites();
+            return data; // array of {_id, userId, movieId, addedAt}
         } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
+            return rejectWithValue(error.message || 'Lỗi lấy danh sách favorite');
         }
     }
 );
 
-// Async thunk để thêm phim vào danh sách yêu thích
 export const addFavorite = createAsyncThunk(
     'favorite/addFavorite',
-    async ({ userId, movie }, { rejectWithValue }) => {
+    async ({ userId, movieId }, { rejectWithValue }) => {
         try {
-            const response = await axios.post(`/favorites/${userId}`, { movie });
-            return response.data;
+            const data = await addFavoriteApi(userId, movieId);
+            return data;
         } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
+            return rejectWithValue(error.message || 'Lỗi thêm favorite');
         }
     }
 );
 
-// Async thunk để xóa phim khỏi danh sách yêu thích
+// Async thunk để xóa favorite
 export const removeFavorite = createAsyncThunk(
     'favorite/removeFavorite',
-    async ({ userId, movieId }, { rejectWithValue }) => {
+    async (favoriteId, { rejectWithValue }) => {
         try {
-            const response = await axios.delete(`/favorites/${userId}/${movieId}`);
-            return response.data;
+            await removeFavoriteApi(favoriteId);
+            return favoriteId;
         } catch (error) {
-            return rejectWithValue(error.response?.data || error.message);
+            return rejectWithValue(error.message || 'Lỗi xóa favorite');
         }
     }
 );
@@ -62,11 +61,20 @@ const favoriteSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload;
             })
+            .addCase(addFavorite.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
             .addCase(addFavorite.fulfilled, (state, action) => {
+                state.loading = false;
                 state.items.push(action.payload);
             })
+            .addCase(addFavorite.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
             .addCase(removeFavorite.fulfilled, (state, action) => {
-                state.items = state.items.filter(item => item._id !== action.payload._id);
+                state.items = state.items.filter(item => item._id !== action.payload);
             });
     },
 });

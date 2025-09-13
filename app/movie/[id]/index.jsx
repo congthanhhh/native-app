@@ -4,6 +4,9 @@ import { Text } from '@/components/ui/text';
 import { Button, ButtonText } from '@/components/ui/button';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { addFavorite, removeFavorite, fetchFavorites } from '@/store/slice/favoriteSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { getMovieDetails } from '@/api/service/movieService';
 import SeasonEpisodeSelector from '@/components/movie/SeasonEpisodeSelector';
@@ -20,10 +23,36 @@ export default function MovieDetailScreen() {
     const [selectedSeason, setSelectedSeason] = useState("1"); // State cho season được chọn - string để tương thích với Select
     const [selectedEpisode, setSelectedEpisode] = useState(1); // Thêm state cho episode được chọn
     const [showDropdown, setShowDropdown] = useState(false); // State cho custom dropdown
+    const dispatch = useDispatch();
+    const { items: favorites, loading: favoriteLoading } = useSelector(state => state.favorite);
+    const [userId, setUserId] = useState(null);
+
+    useEffect(() => {
+        const getUserId = async () => {
+            try {
+                const userStr = await AsyncStorage.getItem('user');
+                if (userStr) {
+                    const user = JSON.parse(userStr);
+                    const id = user._id || user.id || user.userId || user.user_id || user.ID || null;
+                    setUserId(id);
+                } else {
+                    setUserId(null);
+                }
+            } catch (error) {
+                console.error('Error getting user from AsyncStorage:', error);
+                setUserId(null);
+            }
+        };
+        getUserId();
+    }, []);
 
     useEffect(() => {
         fetchMovieDetails();
-    }, [id]);
+        // Fetch favorites when component mounts
+        if (userId) {
+            dispatch(fetchFavorites());
+        }
+    }, [id, userId]);
 
     const fetchMovieDetails = async () => {
         setLoading(true);
@@ -31,20 +60,12 @@ export default function MovieDetailScreen() {
 
         try {
             const result = await getMovieDetails(id);
-            console.log('API Result:', result); // Debug log
 
             if (result.success) {
                 setMovie(result.movie);
-                console.log('Movie type:', result.movie.type); // Debug log
-                console.log('Total seasons:', result.movie.totalSeasons); // Debug log
 
-                // Check if seasons data exists
-                if (result.movie.seasons) {
-                    console.log('Seasons data:', result.movie.seasons); // Debug log
-                    // Set default selected season to first available season
-                    if (result.movie.seasons.length > 0) {
-                        setSelectedSeason(result.movie.seasons[0].season.toString());
-                    }
+                if (result.movie.seasons && result.movie.seasons.length > 0) {
+                    setSelectedSeason(result.movie.seasons[0].season.toString());
                 }
             } else {
                 setError(result.error);
@@ -80,8 +101,33 @@ export default function MovieDetailScreen() {
         );
     }
 
+    // Kiểm tra phim này đã favorite chưa
+    const favoriteObj = favorites.find(fav => fav.movieId === id);
+    const isFavorite = !!favoriteObj;
+
+    const handleFavorite = async () => {
+        if (!userId) {
+            return;
+        }
+
+        try {
+            if (isFavorite) {
+                const result = await dispatch(removeFavorite(favoriteObj._id)).unwrap();
+            } else {
+                const result = await dispatch(addFavorite({ userId, movieId: id })).unwrap();
+            }
+        } catch (error) {
+            console.error('Error in handleFavorite:', error);
+        }
+    };
+
     return (
-        <TouchableWithoutFeedback onPress={() => setShowDropdown(false)}>
+        <TouchableWithoutFeedback
+            onPress={(e) => {
+                // Chỉ close dropdown nếu không phải click vào favorite button
+                setShowDropdown(false);
+            }}
+        >
             <ScrollView className="flex-1 bg-netflix-black">
                 {/* Hero Section */}
                 <View className="relative" style={{ height: height * 0.6 }}>
@@ -174,13 +220,35 @@ export default function MovieDetailScreen() {
                                 </View>
                             </Button>
 
-                            <TouchableOpacity className="bg-netflix-darkGray/80 rounded-md px-6 items-center justify-center shadow-lg">
-                                <Ionicons name="add" size={24} color="#fff" />
-                            </TouchableOpacity>
+                            <Button
+                                variant="outline"
+                                size="md"
+                                className={`bg-netflix-darkGray/80 rounded-md shadow-lg ${favoriteLoading ? 'opacity-50' : ''}`}
+                                onPress={(e) => {
+                                    e.stopPropagation();
 
-                            <TouchableOpacity className="bg-netflix-darkGray/80 rounded-md px-6 items-center justify-center shadow-lg">
+                                    if (!userId || favoriteLoading) {
+                                        return;
+                                    }
+
+                                    handleFavorite();
+                                }}
+                                disabled={favoriteLoading || !userId}
+                            >
+                                <Ionicons
+                                    name={isFavorite ? 'checkmark' : 'add'}
+                                    size={24}
+                                    color={isFavorite ? '#22c55e' : '#fff'}
+                                />
+                            </Button>
+
+                            <Button
+                                variant="outline"
+                                size="md"
+                                className="bg-netflix-darkGray/80 rounded-md shadow-lg"
+                            >
                                 <Ionicons name="share-outline" size={24} color="#fff" />
-                            </TouchableOpacity>
+                            </Button>
                         </View>
                     </View>
                 </View>

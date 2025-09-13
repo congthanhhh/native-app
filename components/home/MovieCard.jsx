@@ -14,11 +14,14 @@ export default function MovieCard({
 }) {
     const router = useRouter();
     const dispatch = useDispatch();
-    const searchKey = `${searchTerm || ''}_${typeCategory || ''}`;
-    const searchState = useSelector((state) => state.movie.search[searchKey] || { movies: [], loading: false, error: null });
+    const searchKey = `${searchTerm || ''}_${typeCategory || ''}_page1`;
+    const searchState = useSelector((state) => {
+        if (!state.movie || !state.movie.search) return { movies: [], loading: false, error: null };
+        return state.movie.search[searchKey] || { movies: [], loading: false, error: null };
+    });
 
     useEffect(() => {
-        dispatch(fetchMoviesBySearch({ searchTerm, typeCategory }));
+        dispatch(fetchMoviesBySearch({ searchTerm, typeCategory, page: 1 }));
     }, [searchTerm]);
 
     const handleSeeMore = () => {
@@ -89,6 +92,11 @@ export default function MovieCard({
                 <Text className="text-netflix-white text-xl font-semibold">
                     {title}
                 </Text>
+                {searchState.movies.length === 10 && (
+                    <TouchableOpacity onPress={handleSeeMore}>
+                        <Text className="text-netflix-red text-base">Xem thêm</Text>
+                    </TouchableOpacity>
+                )}
             </View>
             {/* FlatList */}
             <FlatList
