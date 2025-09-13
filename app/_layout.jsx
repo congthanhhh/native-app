@@ -6,8 +6,8 @@ import ReduxProvider from "@/components/ReduxProvider";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Pressable } from "@/components/ui/pressable";
-import { View, Text } from "react-native";
-import { useState, useEffect, createContext } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import { useState, useEffect, createContext, useRef } from "react";
 // Context để truyền setUsername xuống các màn hình con
 export const UsernameContext = createContext({ setUsername: () => { } });
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -19,6 +19,7 @@ export default function RootLayout() {
     const [headerBgColor, setHeaderBgColor] = useState('transparent');
 
     const [username, setUsername] = useState("");
+    const [showDropdown, setShowDropdown] = useState(false);
     useEffect(() => {
         const getUsername = async () => {
             const userStr = await AsyncStorage.getItem('user');
@@ -38,29 +39,75 @@ export default function RootLayout() {
 
     const HeaderButtons = () => (
         <View className="flex-row items-center">
-            {username ? (
-                <View className="flex-row items-center mr-4">
-                    <Ionicons name="person" size={20} color="#fff" style={{ marginRight: 4 }} />
-                    <Text style={{ color: '#fff', fontSize: 14, marginRight: 8 }}>{username}</Text>
-                    <Pressable
-                        onPress={async () => {
-                            await AsyncStorage.removeItem('token');
-                            await AsyncStorage.removeItem('user');
-                            setUsername("");
-                            router.replace('/account/login');
-                        }}
-                        style={{ paddingHorizontal: 8, paddingVertical: 4, backgroundColor: '#e50914', borderRadius: 4 }}
-                    >
-                        <Text style={{ color: '#fff', fontSize: 12 }}>Logout</Text>
-                    </Pressable>
-                </View>
-            ) : null}
             <Pressable onPress={() => router.push('/search')} className="mr-4">
                 <Ionicons name="search" size={24} color="#fff" />
             </Pressable>
-            <Pressable onPress={() => router.push('/notifications')} className="mr-4">
-                <Ionicons name="notifications" size={24} color="#fff" />
-            </Pressable>
+            {username ? (
+                <View className="relative mr-4">
+                    <TouchableOpacity
+                        onPress={() => setShowDropdown(!showDropdown)}
+                        className="flex-row items-center"
+                    >
+                        <View className="w-8 h-8 bg-red-600 rounded-full items-center justify-center mr-2">
+                            <Text style={{ color: '#fff', fontSize: 12, fontWeight: 'bold' }}>
+                                {username.charAt(0).toUpperCase()}
+                            </Text>
+                        </View>
+                        <Ionicons name={showDropdown ? "chevron-up" : "chevron-down"} size={16} color="#fff" />
+                    </TouchableOpacity>
+
+                    {showDropdown && (
+                        <View
+                            style={{
+                                position: 'absolute',
+                                top: 40,
+                                right: 0,
+                                backgroundColor: '#1a1a1a',
+                                borderRadius: 8,
+                                paddingVertical: 8,
+                                minWidth: 160,
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.25,
+                                shadowRadius: 8,
+                                elevation: 5,
+                                zIndex: 1000,
+                            }}
+                        >
+                            {/* Username Display */}
+                            <View style={{ paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#333' }}>
+                                <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }}>{username}</Text>
+                            </View>
+
+                            {/* Account Page */}
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setShowDropdown(false);
+                                    router.push('/account');
+                                }}
+                                style={{ paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center' }}
+                            >
+                                <Ionicons name="person" size={16} color="#fff" style={{ marginRight: 8 }} />
+                                <Text style={{ color: '#fff', fontSize: 14 }}>Tài khoản</Text>
+                            </TouchableOpacity>
+
+                            {/* Logout */}
+                            <TouchableOpacity
+                                onPress={async () => {
+                                    setShowDropdown(false);
+                                    await AsyncStorage.multiRemove(['token', 'user']);
+                                    setUsername("");
+                                    router.replace('/account/login');
+                                }}
+                                style={{ paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center' }}
+                            >
+                                <Ionicons name="log-out" size={16} color="#e50914" style={{ marginRight: 8 }} />
+                                <Text style={{ color: '#e50914', fontSize: 14 }}>Đăng xuất</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
+            ) : null}
         </View>
     );
 

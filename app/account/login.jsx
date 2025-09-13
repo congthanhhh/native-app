@@ -9,9 +9,12 @@ import { jwtDecode } from 'jwt-decode';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { UsernameContext } from '../_layout';
+import { useDispatch } from 'react-redux';
+import { fetchFavorites } from '@/store/slice/favoriteSlice';
 
 export default function LoginScreen() {
     const { setUsername: setHeaderUsername } = useContext(UsernameContext);
+    const dispatch = useDispatch();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -44,6 +47,15 @@ export default function LoginScreen() {
                 }
 
                 setHeaderUsername(username);
+
+                // Fetch favorites after successful login
+                try {
+                    await dispatch(fetchFavorites());
+                } catch (favError) {
+                    console.error('Error fetching favorites after login:', favError);
+                    // Don't block login if favorites fetch fails
+                }
+
                 router.replace("/account");
             } else {
                 setError("Không nhận được token");

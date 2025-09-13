@@ -44,8 +44,18 @@ export default function HomeScreen() {
             />
 
             <MovieCard
+                title="Series kinh điển"
+                searchTerm={SEARCH_TERMS.POPULAR}
+                typeCategory={TYPE_SERIES}
+            />
+            <MovieCard
                 title="Phim nổi bật"
                 searchTerm={SEARCH_TERMS.NEW_MOVIES}
+                typeCategory={TYPE_MOVIE}
+            />
+            <MovieCard
+                title="JAMES_BOND Series"
+                searchTerm={SEARCH_TERMS.JAMES_BOND}
                 typeCategory={TYPE_MOVIE}
             />
             <MovieCard

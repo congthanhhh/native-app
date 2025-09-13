@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, ActivityIndicator } from 'react-native';
+import { View, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchFavorites } from '@/store/slice/favoriteSlice';
 import { getMovieByIdFromOMDb } from '@/api/service/movieService';
@@ -14,6 +14,7 @@ export default function FavoritesScreen() {
     const { items: favorites, loading, error } = useSelector(state => state.favorite);
     const [movies, setMovies] = useState([]);
     const [loadingMovies, setLoadingMovies] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         dispatch(fetchFavorites());
@@ -57,7 +58,20 @@ export default function FavoritesScreen() {
         } else {
             setMovies([]);
         }
-    }, [favorites]); if (loading || loadingMovies) {
+    }, [favorites]);
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        try {
+            await dispatch(fetchFavorites());
+        } catch (error) {
+            console.error('Error refreshing favorites:', error);
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
+    if (loading || loadingMovies) {
         return (
             <View className="flex-1 bg-black justify-center items-center">
                 <ActivityIndicator size="large" color="#e50914" />
@@ -118,6 +132,15 @@ export default function FavoritesScreen() {
                         paddingVertical: 10
                     }}
                     showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            colors={['#e50914']}
+                            tintColor="#e50914"
+                            progressBackgroundColor="#141414"
+                        />
+                    }
                 />
             </View>
         </SafeAreaProvider>
