@@ -15,8 +15,8 @@ import {
   ButtonGroup,
 } from "@/components/ui/button";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { 
-  searchMoviesThunk, 
+import {
+  searchMoviesThunk,
   searchSuggestionsThunk,
   setSearchTerm,
   setShowSuggestions,
@@ -32,7 +32,7 @@ import {
   selectHasMorePages,
   selectCurrentPage,
   selectIsLoadingMore
-} from "@/store/searchSlice";
+} from "@/store/slice/searchSlice";
 import fallbackMoviePoster from "@/utils/fallbackImage";
 import CategoryButton from "@/components/ui/CategoryButton";
 
@@ -42,7 +42,7 @@ export default function Search() {
   const [inputValue, setInputValue] = useState('');
   const [searchTimeout, setSearchTimeout] = useState(null);
   const [isWaitingToSearch, setIsWaitingToSearch] = useState(false);
-  
+
   // Redux state
   const searchResults = useSelector(selectSearchResults);
   const isLoading = useSelector(selectIsLoading);
@@ -54,17 +54,17 @@ export default function Search() {
   const totalResults = useSelector(selectTotalResults);
   const hasMorePages = useSelector(selectHasMorePages);
   const currentPage = useSelector(selectCurrentPage);
-  
+
   // Handle input change with auto-search and debounce
   const handleInputChange = (text) => {
     setInputValue(text);
     dispatch(setSearchTerm(text));
-    
+
     // Clear previous timeout
     if (searchTimeout) {
       clearTimeout(searchTimeout);
     }
-    
+
     // Auto search with debounce - search after 800ms delay
     if (text.trim().length >= 3) {
       setIsWaitingToSearch(true);
@@ -85,7 +85,7 @@ export default function Search() {
       setIsWaitingToSearch(false);
     }
   };
-  
+
   // Handle search submission (still keep for Enter key)
   const handleSearch = () => {
     if (inputValue.trim().length >= 3) {
@@ -94,14 +94,14 @@ export default function Search() {
         clearTimeout(searchTimeout);
         setSearchTimeout(null);
       }
-      
+
       setIsWaitingToSearch(false);
       dispatch(clearSuggestions());
       dispatch(setShowSuggestions(false));
       dispatch(searchMoviesThunk({ searchTerm: inputValue.trim(), page: 1 }));
     }
   };
-  
+
   // Handle suggestion selection
   const handleSuggestionSelect = (movie) => {
     setInputValue(movie.title);
@@ -110,31 +110,31 @@ export default function Search() {
     dispatch(setShowSuggestions(false));
     dispatch(searchMoviesThunk({ searchTerm: movie.title, page: 1 }));
   };
-  
+
   // Handle load more - Limit to 20 results total
   const handleLoadMore = () => {
     if (hasMorePages && !isLoadingMore && searchTerm && searchResults.length < 20) {
-      dispatch(searchMoviesThunk({ 
-        searchTerm: searchTerm, 
-        page: currentPage + 1 
+      dispatch(searchMoviesThunk({
+        searchTerm: searchTerm,
+        page: currentPage + 1
       }));
     }
   };
-  
+
   // Clear search
   const handleClearSearch = () => {
     setInputValue('');
     dispatch(clearSearch());
     dispatch(clearSuggestions());
   };
-  
+
   // Handle input focus
   const handleInputFocus = () => {
     if (suggestions.length > 0) {
       dispatch(setShowSuggestions(true));
     }
   };
-  
+
   // Handle input blur
   const handleInputBlur = () => {
     // Delay hiding suggestions to allow selection
@@ -164,10 +164,10 @@ export default function Search() {
         <Card size="md" variant="filled" className="bg-black mb-3">
           <View className="flex-row items-center">
             <Image
-              source={{ 
-                uri: item.poster && item.poster !== 'N/A' 
-                  ? item.poster 
-                  : fallbackMoviePoster 
+              source={{
+                uri: item.poster && item.poster !== 'N/A'
+                  ? item.poster
+                  : fallbackMoviePoster
               }}
               className="w-32 h-20 rounded mr-3 bg-gray-300"
               alt={item.title}
@@ -200,10 +200,10 @@ export default function Search() {
         <Card size="md" variant="filled" className="bg-black/80 mb-2">
           <View className="flex-row items-center">
             <Image
-              source={{ 
-                uri: item.poster && item.poster !== 'N/A' 
-                  ? item.poster 
-                  : fallbackMoviePoster 
+              source={{
+                uri: item.poster && item.poster !== 'N/A'
+                  ? item.poster
+                  : fallbackMoviePoster
               }}
               className="w-16 h-12 rounded mr-3 bg-gray-300"
               alt={item.title}
@@ -336,9 +336,9 @@ export default function Search() {
         <View className="flex-1 justify-center items-center">
           <Ionicons name="alert-circle" size={48} color="#ef4444" />
           <Text className="text-white mt-4 text-center">{error}</Text>
-          <Button 
-            size="md" 
-            variant="outline" 
+          <Button
+            size="md"
+            variant="outline"
             className="mt-4"
             onPress={() => inputValue && handleSearch()}
           >

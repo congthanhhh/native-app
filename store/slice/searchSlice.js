@@ -1,5 +1,5 @@
+import { searchMovies, searchMovieSuggestions } from '@/api/service/searchService';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { searchMovies, searchMovieSuggestions } from '../api/service/searchService';
 
 // Async thunks for API calls
 export const searchMoviesThunk = createAsyncThunk(
@@ -38,24 +38,24 @@ const initialState = {
     totalResults: 0,
     currentPage: 1,
     hasMorePages: false,
-    
+
     // Search term and type
     searchTerm: '',
     searchType: '', // 'movie', 'series', or ''
-    
+
     // Loading states
     isLoading: false,
     isLoadingMore: false,
     isSuggestionsLoading: false,
-    
+
     // Suggestions
     suggestions: [],
     showSuggestions: false,
-    
+
     // Error handling
     error: null,
     suggestionError: null,
-    
+
     // UI states
     isSearchFocused: false,
 };
@@ -73,40 +73,40 @@ const searchSlice = createSlice({
             state.searchTerm = '';
             state.error = null;
         },
-        
+
         // Clear suggestions
         clearSuggestions: (state) => {
             state.suggestions = [];
             state.showSuggestions = false;
             state.suggestionError = null;
         },
-        
+
         // Set search term
         setSearchTerm: (state, action) => {
             state.searchTerm = action.payload;
         },
-        
+
         // Set search type
         setSearchType: (state, action) => {
             state.searchType = action.payload;
         },
-        
+
         // Toggle suggestions visibility
         setShowSuggestions: (state, action) => {
             state.showSuggestions = action.payload;
         },
-        
+
         // Set search focus state
         setSearchFocused: (state, action) => {
             state.isSearchFocused = action.payload;
         },
-        
+
         // Clear errors
         clearError: (state) => {
             state.error = null;
             state.suggestionError = null;
         },
-        
+
         // Load more results (append to existing results)
         appendSearchResults: (state, action) => {
             state.searchResults = [...state.searchResults, ...action.payload];
@@ -128,14 +128,14 @@ const searchSlice = createSlice({
             .addCase(searchMoviesThunk.fulfilled, (state, action) => {
                 const { movies, totalResults, currentPage, hasMorePages } = action.payload;
                 const isLoadingMore = currentPage > 1;
-                
+
                 if (isLoadingMore) {
                     // Limit total results to 20
                     const remainingSlots = 20 - state.searchResults.length;
                     const moviesToAdd = movies.slice(0, remainingSlots);
                     state.searchResults = [...state.searchResults, ...moviesToAdd];
                     state.isLoadingMore = false;
-                    
+
                     // Stop loading more if we reach 20 results
                     if (state.searchResults.length >= 20) {
                         state.hasMorePages = false;
@@ -148,7 +148,7 @@ const searchSlice = createSlice({
                     state.isLoading = false;
                     state.hasMorePages = movies.length === 10 && totalResults > 10;
                 }
-                
+
                 state.totalResults = Math.min(totalResults, 20); // Cap displayed total at 20
                 state.currentPage = currentPage;
                 state.error = null;
@@ -159,7 +159,7 @@ const searchSlice = createSlice({
                 state.error = action.payload || 'Failed to search movies';
                 state.searchResults = [];
             });
-            
+
         // Search suggestions
         builder
             .addCase(searchSuggestionsThunk.pending, (state) => {

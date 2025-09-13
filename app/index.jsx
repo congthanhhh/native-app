@@ -24,7 +24,7 @@ export default function HomeScreen() {
             className="flex-1 bg-netflix-black"
         >
             <MovieCarousel />
-            {/* 
+
             <MovieCard
                 title="Phim hành động"
                 searchTerm={SEARCH_TERMS.ACTION}
@@ -41,7 +41,7 @@ export default function HomeScreen() {
                 title="Phim Disney"
                 searchTerm={SEARCH_TERMS.DISNEY}
                 typeCategory={TYPE_MOVIE}
-            /> */}
+            />
 
             <MovieCard
                 title="Phim nổi bật"
